@@ -1,0 +1,478 @@
+#fuzzification,defuzzification
+import matplotlib.pyplot as plt
+import numpy as np
+
+def plotGraph(x,y1,y2):
+    plt.plot(x,y1)
+    plt.plot(x,y2)
+    plt.xlabel("Normalized speed difference")
+    plt.ylabel("Degree of membership")
+    plt.show()
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+def calculateFuzzySpeed(x,speedDiff,data):
+    a1=0
+    b1=0
+    c1=0
+    a2=0
+    b2=0
+    c2=0
+    d1=''
+    d2=''
+    for i in range(len(x)):
+        if x[i] < speedDiff and x[i+1] > speedDiff:
+            a1 = x[i-1]
+            b1 = x[i]
+            c1 = x[i+1]
+            a2 = x[i] 
+            b2 = x[i+1]
+            c2 = x[i+2]
+            d1 = data[i-1]
+            d2 = data[i]
+            break
+    value11 = (speedDiff-a1)/(b1-a1)
+    value12 = (c1-speedDiff)/(c1-b1)
+    value21 = (speedDiff-a2)/(b2-a2)
+    value22 = (c2-speedDiff)/(c2-b2)
+    fuzzyOutput1 = round(max(min(value11,value12),0),3)
+    fuzzyOutput2 = round(max(min(value21,value22),0),3)
+    return fuzzyOutput1,fuzzyOutput2,d1,d2
+
+def calculateFuzzyAcc(x,accDiff,data):
+    a1=0
+    b1=0
+    c1=0
+    a2=0
+    b2=0
+    c2=0
+    d1=''
+    d2=''
+    for i in range(len(x)):
+        if x[i] < accDiff and x[i+1] > accDiff:
+            a1 = x[i-1]
+            b1 = x[i]
+            c1 = x[i+1]
+            a2 = x[i] 
+            b2 = x[i+1]
+            c2 = x[i+2]
+            d1 = data[i-1]
+            d2 = data[i]
+            break
+    value11 = (accDiff-a1)/(b1-a1)
+    value12 = (c1-accDiff)/(c1-b1)
+    value21 = (accDiff-a2)/(b2-a2)
+    value22 = (c2-accDiff)/(c2-b2)
+    fuzzyOutput1 = round(max(min(value11,value12),0),3)
+    fuzzyOutput2 = round(max(min(value21,value22),0),3)
+    return fuzzyOutput1,fuzzyOutput2,d1,d2     
+
+
+def checkRules(speed,acc):
+    RuleValues=[]
+    RuleData = []
+    if 'NL' in speed and 'ZE' in acc:
+        RuleValues.append(min(speed['NL'],acc['ZE']))
+        RuleData.append('PL')
+    else:
+        RuleValues.append(0)
+        RuleData.append('PL')
+    if 'ZE' in speed and 'NL' in acc:
+        RuleValues.append(min(speed['ZE'],acc['NL']))
+        RuleData.append('PL')
+    else:
+        RuleValues.append(0)
+        RuleData.append('PL')
+    if 'NM' in speed and 'ZE' in acc:
+        RuleValues.append(min(speed['NM'],acc['ZE']))
+        RuleData.append('PM')
+    else:
+        RuleValues.append(0)
+        RuleData.append('PM')
+    if 'NS' in speed and 'PS' in acc:
+        RuleValues.append(min(speed['NS'],acc['PS']))
+        RuleData.append('PS')
+    else:
+        RuleValues.append(0)
+        RuleData.append('PS')
+    if 'PS' in speed and 'NS' in acc:
+        RuleValues.append(min(speed['PS'],acc['NS']))
+        RuleData.append('NS')
+    else:
+        RuleValues.append(0)
+        RuleData.append('NS')
+    if 'PL' in speed and 'ZE' in acc:
+        RuleValues.append(min(speed['PL'],acc['ZE']))
+        RuleData.append('NL')
+    else:
+        RuleValues.append(0)
+        RuleData.append('NL')
+    if 'ZE' in speed and 'NS' in acc:
+        RuleValues.append(min(speed['ZE'],acc['NS']))
+        RuleData.append('PS')
+    else:
+        RuleValues.append(0)
+        RuleData.append('PS')
+    if 'ZE' in speed and 'NM' in acc:
+        RuleValues.append(min(speed['ZE'],acc['NM']))
+        RuleData.append('PM')
+    else:
+        RuleValues.append(0)
+        RuleData.append('PM')
+    return RuleData,RuleValues
+    
+
+def aggregate(RuleData,RuleValues):
+    select = []
+    values=[]
+    for index in range(len(RuleValues)):
+        if RuleValues[index] != 0:
+            select.append(RuleData[index])
+            values.append(RuleValues[index])
+    return select,values
+    
+
+def calculateAggregate(dataPoints,val):
+    x1 = dataPoints[0]
+    y1 = 0
+    x2 = dataPoints[1]
+    y2 = 1
+    m = (y2-y1)/(x2-x1)
+    c = y1 - (m*x1)
+    v1 = (val - c)/m
+    print('v1 = ',v1)
+    h = val
+    a = dataPoints[2] - dataPoints[0]
+    x1 = dataPoints[1]
+    y1 = 1
+    x2 = dataPoints[2]
+    y2 = 0
+    m = (y2-y1)/(x2-x1)
+    c = y1 - (m*x1)
+    v2 = (val - c)/m
+    print('v2 = ',v2)
+    b = v2 - v1
+    print('b = ',b)
+    area = 1/2*h*(a+b)
+    print('Area = ',area)
+    return area
+
+        
+
+if __name__ == '__main__':
+    dict_values = {
+        'NL' : [0,31,61],
+        'NM' : [31,61,95],
+        'NS' : [61,95,127],
+        'ZE' : [95,127,159],
+        'PS' : [127,159,191],
+        'PM' : [159,191,223],
+        'PL' : [191,223,255]
+        }
+    x = np.array([0,31,61,95,127,159,191,223,255])
+    y1 = np.array([1,1,0,1,0,1,0,1,1])
+    y2 = np.array([0,0,1,0,1,0,1,0,0])
+    data = ['NL','NM','NS','ZE','PS','PM','PL']
+    plotGraph(x,y1,y2)
+    speedDiff = int(input('Enter the speed difference: '))
+    fuzzySpeed1,fuzzySpeed2,ds1,ds2 = calculateFuzzySpeed(x,speedDiff,data)
+    accDiff = int(input('Enter the acceleration difference: '))
+    fuzzyAcc1,fuzzyAcc2,da1,da2 = calculateFuzzyAcc(x,accDiff,data)
+    print(f'fuzzy speed output: {fuzzySpeed1},{fuzzySpeed2} and data lies in {ds1},{ds2}')
+    print(f'fuzzy acceleration output: {fuzzyAcc1},{fuzzyAcc2} and data lies in {da1},{da2}')
+    speed = {ds1:fuzzySpeed1,ds2:fuzzySpeed2}
+    acc = {da1:fuzzyAcc1,da2:fuzzyAcc2}
+    RuleData,RuleValues = checkRules(speed,acc)
+    print(f'Rule data: {RuleData}')
+    print(f'Rule Values: {RuleValues}')
+    selected,values = aggregate(RuleData,RuleValues)
+    chosenValues = []
+    for val in selected:
+        chosenValues.append(dict_values[val])
+    print(values)
+    area = []
+    for index in range(len(chosenValues)):
+        a = calculateAggregate(chosenValues[index],values[index])
+        area.append(a)
+    cg = 0
+    for index in range(len(chosenValues)):
+        cg+= area[index] * chosenValues[index][1]
+    cg = cg/sum(area)
+    print('Weighted Average or CG = ',round(cg,2))
+    
+    
+    
+    
+    # union ,intersection , difference, complement
+def union(A,B):
+    for key in A:
+        if key not in B:
+            B[key] = 0
+    
+    for key in B:
+        if key not in A:
+            A[key] = 0
+    C={}
+    for key in A:
+       C[key] = max(A[key],B[key])
+    return C
+
+def intersection(A,B):
+    for key in A:
+        if key not in B:
+            B[key] = 0
+    
+    for key in B:
+        if key not in A:
+            A[key] = 0
+    C={}
+    for key in A:
+       C[key] = min(A[key],B[key])
+    return C
+
+def difference(A,B):
+    C= {}
+    for key in A:
+        if key not in B:
+           C[key] = B[key]
+    return C
+
+def complement(A):
+    C= {}
+    for key in A:
+        C[key] = round(1-A[key],2)
+    return C
+
+def verified(A,B):
+    if A==B:
+        print('Verified!')
+    else:
+        print('Verification failed!')
+
+def verify(A,B):
+    print("Demorgan's law verification:")
+    #(AUB)' = A' ^ B'
+    #(A^B)' = A' U B'
+    aunionb = union(A,B)
+    aunionb_dash = complement(aunionb)
+    print("(A union B)' = ",aunionb_dash)
+    a_dash = complement(A)
+    b_dash = complement(B)
+    a_d_inter_b_d = intersection(a_dash,b_dash)
+    print("A' inter B' = ",a_d_inter_b_d)
+    verified(aunionb_dash,a_d_inter_b_d)
+    ainterb = intersection(A, B)
+    ainterb_dash = complement(ainterb)
+    print("(A intersection B)' = ",ainterb_dash)
+    a_d_union_b_d = union(a_dash,b_dash)
+    print("A' union B' = ",a_d_union_b_d)
+    verified(ainterb_dash,a_d_union_b_d)
+    
+
+
+if __name__ == '__main__':
+    A = {
+         2:1,
+         3:0.4,
+         1:0.6,
+         4:0.2
+        }
+    B = {
+         2:0,
+         3:0.2,
+         1:0.2,
+         4:0.8
+        }
+    C = union(A,B)
+    print('Union of the two fuzzy sets is: ',C)
+    C = intersection(A,B)
+    print('Intersection of the two fuzzy sets is: ',C)
+    C = difference(A,B)
+    print('Difference of two fuzzy sets: ',C)
+    C = complement(A)
+    print('Complement of A fuzzy sets: ',C)
+    C = complement(B)
+    print('Complement of B fuzzy sets: ',C)
+    verify(A,B)
+    
+    
+    
+    
+    #max min composition
+def cartesianProduct(A,B):
+    output = []
+    for keyA in A:
+        temp = []
+        for keyB in B:
+            val = min(A[keyA],B[keyB])
+            temp.append(val)
+        output.append(temp)
+    return output
+
+
+
+
+def maxMin(A,B):
+    output = []
+    for k in range(len(A)):
+        array=[]
+        for i in range(len(A)):
+            temp = []
+            for j in range(len(B)):
+                val = min(A[i][j],B[j][i])
+                temp.append(val)
+            array.append(max(temp))
+        output.append(array)
+    return output
+            
+
+
+
+
+if __name__ == '__main__':
+    A = {
+        2:1,
+        3:0.4,
+        1:0.6,
+        4:0.2
+        }
+    B = {
+        5:0,
+        7:0.2,
+        6:0.2,
+        8:0.8
+        }
+    C = {
+        2:0.5,
+        3:0.6,
+        1:0.1,
+        4:0.9
+        }
+    R = cartesianProduct(A,B)
+    S = cartesianProduct(A,C)
+    print('R = ',R)
+    print('S = ',S)
+    R0S = maxMin(R,S)
+    print('MaxMin Composition: ',R0S)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#fuzzification
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.stats import norm
+import statistics
+
+
+def plotGraph_triangle(x,y):
+    plt.plot(x,y)
+    x1 = np.array([50,50])
+    y1 = np.array([0,1])
+    plt.plot(x1,y1)
+    plt.xlabel('Triangular function')
+    plt.show()
+
+def plotGraph_trapezoid(x,y):
+    plt.plot(x,y)
+    x1 = np.array([25,25])
+    y1 = np.array([0,1])
+    x2 = np.array([75,75])
+    y2 = np.array([0,1])
+    plt.plot(x1,y1)
+    plt.plot(x2,y2)
+    plt.xlabel('Trapezoidal function')
+    plt.show()
+
+def gaussian():
+    x_axis = np.arange(-20, 20,0.01)
+    mean = statistics.mean(x_axis)
+    std = statistics.stdev(x_axis)
+    plt.plot(x_axis,norm.pdf(x_axis,mean,std))
+    plt.xlabel('Gaussian')
+    plt.show()
+
+
+if __name__ == '__main__':
+    x = np.array([0,50,100])
+    y = np.array([0,1,0])
+    plotGraph_triangle(x,y)
+    x = np.array([0,25,75,100])
+    y = np.array([0,1,1,0])
+    plotGraph_trapezoid(x,y)
+    gaussian()
+
